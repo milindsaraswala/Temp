@@ -1,0 +1,69 @@
+
+<mxfile host="app.diagrams.net" modified="2025-04-09T09:00:00.000Z">
+  <diagram id="WorkflowERD" name="WorkflowERD">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="800" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- WorkflowDefinition -->
+        <mxCell id="WorkflowDefinition" value="WorkflowDefinition" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Stage -->
+        <mxCell id="Stage" value="Stage" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="300" y="50" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Transition -->
+        <mxCell id="Transition" value="Transition" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="550" y="50" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- WorkflowInstance -->
+        <mxCell id="WorkflowInstance" value="WorkflowInstance" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="50" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Task -->
+        <mxCell id="Task" value="Task" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="300" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Role -->
+        <mxCell id="Role" value="Role" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="550" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Delegation -->
+        <mxCell id="Delegation" value="Delegation" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="800" y="50" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Relationships -->
+        <mxCell id="WorkflowDefinition_to_Stage" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" edge="1" parent="1" source="WorkflowDefinition" target="Stage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Stage_to_Transition" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" edge="1" parent="1" source="Stage" target="Transition">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="WorkflowDefinition_to_WorkflowInstance" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" edge="1" parent="1" source="WorkflowDefinition" target="WorkflowInstance">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="WorkflowInstance_to_Task" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" edge="1" parent="1" source="WorkflowInstance" target="Task">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Role_to_Task" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" edge="1" parent="1" source="Role" target="Task">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Role_to_Stage" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" edge="1" parent="1" source="Role" target="Stage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Role_to_Delegation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" edge="1" parent="1" source="Role" target="Delegation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
