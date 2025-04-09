@@ -6,39 +6,74 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         
-        <!-- WorkflowDefinition -->
-        <mxCell id="WorkflowDefinition" value="WorkflowDefinition" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="50" y="50" width="120" height="60" as="geometry" />
+        <!-- WorkflowDefinition Table -->
+        <mxCell id="WorkflowDefinition" value="WorkflowDefinition
+- WorkflowID (PK)
+- Name
+- Description
+- IsActive
+- CreatedDate" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="180" height="120" as="geometry" />
         </mxCell>
         
-        <!-- Stage -->
-        <mxCell id="Stage" value="Stage" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="300" y="50" width="120" height="60" as="geometry" />
+        <!-- Stage Table -->
+        <mxCell id="Stage" value="Stage
+- StageID (PK)
+- WorkflowID (FK)
+- Name
+- RoleID (FK)
+- IsInitial
+- IsFinal
+- SLA_Hours" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="300" y="50" width="200" height="140" as="geometry" />
         </mxCell>
         
-        <!-- Transition -->
-        <mxCell id="Transition" value="Transition" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="550" y="50" width="120" height="60" as="geometry" />
+        <!-- Transition Table -->
+        <mxCell id="Transition" value="Transition
+- TransitionID (PK)
+- WorkflowID (FK)
+- FromStageID (FK)
+- ToStageID (FK)
+- ActionName" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="550" y="50" width="220" height="100" as="geometry" />
         </mxCell>
         
-        <!-- WorkflowInstance -->
-        <mxCell id="WorkflowInstance" value="WorkflowInstance" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="50" y="200" width="120" height="60" as="geometry" />
+        <!-- WorkflowInstance Table -->
+        <mxCell id="WorkflowInstance" value="WorkflowInstance
+- InstanceID (PK)
+- WorkflowID (FK)
+- FormID
+- CurrentStageID (FK)
+- StartDate
+- IsCompleted" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="50" y="250" width="200" height="120" as="geometry" />
         </mxCell>
         
-        <!-- Task -->
-        <mxCell id="Task" value="Task" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="300" y="200" width="120" height="60" as="geometry" />
+        <!-- Task Table -->
+        <mxCell id="Task" value="Task
+- TaskID (PK)
+- InstanceID (FK)
+- StageID (FK)
+- Status
+- DueDate" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="300" y="250" width="200" height="100" as="geometry" />
         </mxCell>
         
-        <!-- Role -->
-        <mxCell id="Role" value="Role" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="550" y="200" width="120" height="60" as="geometry" />
+        <!-- Role Table -->
+        <mxCell id="Role" value="Role
+- RoleID (PK)
+- RoleName" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="550" y="250" width="200" height="80" as="geometry" />
         </mxCell>
         
-        <!-- Delegation -->
-        <mxCell id="Delegation" value="Delegation" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="800" y="50" width="120" height="60" as="geometry" />
+        <!-- Delegation Table -->
+        <mxCell id="Delegation" value="Delegation
+- DelegationID (PK)
+- FromUser
+- ToUser
+- StartDate
+- EndDate" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="800" y="50" width="220" height="120" as="geometry" />
         </mxCell>
         
         <!-- Relationships -->
