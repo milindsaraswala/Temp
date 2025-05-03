@@ -1,8 +1,83 @@
-[19:22:04] Error - typescript - src\webparts\bpmForm\components\FormRenderer\FormRenderer.tsx(66,64): error TS1109: Expression expected.
-[19:22:04] Error - typescript - src\webparts\bpmForm\components\FormRenderer\FormRenderer.tsx(66,65): error TS1003: Identifier expected.
-[19:22:04] Error - typescript - src\webparts\bpmForm\components\FormRenderer\FormRenderer.tsx(66,74): error TS1005: ':' expected.
-[19:22:04] Error - typescript - src\webparts\bpmForm\components\FormRenderer\FormRenderer.tsx(67,46): error TS1109: Expression expected.
-[19:22:04] Error - typescript - src\webparts\bpmForm\components\FormRenderer\FormRenderer.tsx(67,47): error TS1003: Identifier expected.
-[19:22:04] Error - typescript - src\webparts\bpmForm\components\FormRenderer\FormRenderer.tsx(67,54): error TS1005: ':' expected.
-[19:22:04] Error - typescript - src\webparts\bpmForm\components\FormRenderer\FormRenderer.tsx(146,25): error TS1109: Expression expected.
-[19:22:04] Error - typescript - src\webparts\bpmForm\components\FormRenderer\FormRenderer.tsx(146,49): error TS1005: ':' expected.
+{
+  "formId": 0,
+  "templateId": 200,
+  "userRole": "Initiator",
+  "currentStage": null,
+  "isReadOnly": false,
+  "fields": [],
+  "sections": [
+    {
+      "name": "CaseInputSection",
+      "label": "Case Details",
+      "fields": [
+        {
+          "name": "Source",
+          "label": "Source",
+          "type": "dropdown",
+          "options": ["Phone", "Email", "Walk-in"],
+          "colSpan": 6
+        },
+        {
+          "name": "CaseRelatedTo",
+          "label": "Case Related To",
+          "type": "dropdown",
+          "options": ["Loan", "Card", "Account"],
+          "colSpan": 6
+        }
+      ],
+      "sections": [
+        {
+          "name": "LoanCaseSection",
+          "label": "Loan Details",
+          "visibleWhen": "CaseRelatedTo == 'Loan'",
+          "fields": [
+            {
+              "name": "LoanNumber",
+              "label": "Loan Number",
+              "type": "text",
+              "colSpan": 6
+            },
+            {
+              "name": "LoanType",
+              "label": "Loan Type",
+              "type": "text",
+              "colSpan": 6
+            }
+          ]
+        },
+        {
+          "name": "CardCaseSection",
+          "label": "Card Details",
+          "visibleWhen": "CaseRelatedTo == 'Card'",
+          "fields": [
+            {
+              "name": "CardNumber",
+              "label": "Card Number",
+              "type": "text",
+              "colSpan": 6
+            }
+          ]
+        },
+        {
+          "name": "AccountCaseSection",
+          "label": "Account Details",
+          "visibleWhen": "CaseRelatedTo == 'Account'",
+          "fields": [
+            {
+              "name": "AccountNumber",
+              "label": "Account Number",
+              "type": "text",
+              "colSpan": 6
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "label": "Submit",
+      "visibleWhen": "userRole == 'Initiator'"
+    }
+  ]
+}
