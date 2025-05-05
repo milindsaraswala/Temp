@@ -1,293 +1,42 @@
-import * as React from "react"
-import CifLookup from "../cifLookup/CifLookup"
-import { ActionButtonDefinition, FieldDefinition, FormDefinition, SectionDefinition } from "../models"
-import ExpressEvaluator from "../utils/ExpressionEvaluator"
-import { FieldRenderer } from "../utils/FieldRenderer"
+if (field.type === "file") {
+  const isMultiple = !!field.multiple;
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files || []);
+    this.props.onChange(field.name, isMultiple ? files : files[0]);
+  };
 
-export interface IFormRendererProps {
-	definition: FormDefinition
-	formData: any
-	onChange: (name: string, value: any) => void
-	onAction: (action: string) => void
-	onLoadingChange?: (loading: boolean) => void
-	onError?: (error: string | null) => void
-}
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    this.props.onChange(field.name, isMultiple ? files : files[0]);
+  };
 
-export default class FormRenderer extends React.Component<IFormRendererProps, {}> {
-	// private fieldOptionsCache: { [fieldName: string]: string[] } = {}
-	public constructor(props: IFormRendererProps) {
-		super(props)
-	}
+  const dropZoneStyle: React.CSSProperties = {
+    border: "2px dashed #999",
+    padding: 20,
+    textAlign: "center",
+    backgroundColor: "#f9f9f9",
+    cursor: "pointer"
+  };
 
-	public renderSection = (section: SectionDefinition): JSX.Element | null => {
-		const visible = !section.visibleWhen || ExpressEvaluator(section.visibleWhen, this.props.formData)
-		if (!visible) return null
-
-		const content: JSX.Element[] = []
-
-		if (section.fields && section.fields.length > 0) {
-			content.push(<div key={section.name + "-fields"}>{this.renderFieldsWithGrid(section.fields, section.fieldsPerRow || this.props.definition.fieldsPerRow)}</div>)
-		}
-
-		if (section.sections && section.sections.length > 0) {
-			content.push(<div style={{ marginTop: 10, paddingLeft: 10 }}>{section.sections.map(this.renderSection)}</div>)
-		}
-
-		return (
-			<div key={section.name} style={{ border: "1px solid  #ccc", padding: 10, marginBottom: 15 }}>
-				<strong>{section.label}</strong>
-
-				{content}
-			</div>
-		)
-	}
-
-	public renderActions = () => {
-		const { definition, formData } = this.props
-
-		return (
-			<div style={{ marginTop: 20 }}>
-				{definition.actions.map((action: ActionButtonDefinition) => {
-					const show = ExpressEvaluator(action.visibleWhen, {
-						...formData,
-						userRole: definition.userRole,
-						currentStage: definition.currentStage
-					})
-
-					return show ? (
-						<button key={action.label} onClick={() => this.props.onAction(action.label)} style={{ marginRight: 10 }}>
-							{action.label}
-						</button>
-					) : null
-				})}
-			</div>
-		)
-	}
-
-	public render(): JSX.Element {
-		const { definition } = this.props
-
-		return (
-			<div style={{ padding: 20 }}>
-				<h2>Dynamic CIF Form</h2>
-
-				{definition.fields && this.renderFieldsWithGrid(definition.fields, definition.fieldsPerRow)}
-				{definition.sections && definition.sections.map(this.renderSection)}
-				{this.renderActions}
-			</div>
-		)
-	}
-
-	/*private renderField = (field: FieldDefinition): JSX.Element => {
-		const { definition, formData } = this.props
-		const value = formData[field.name] || ""
-		const commonStyle = { width: "100%", padding: "5px" }
-		const error = this.validateField(field, value)
-		const readOnly = definition.isReadOnly || field.readonly
-
-		if (field.type === "dropdown") {
-			const options = field.options || this.fieldOptionsCache[field.name] || []
-
-			if (!field.options && field.dataSourceUrl && !this.fieldOptionsCache[field.name]) {
-				fetch(field.dataSourceUrl)
-					.then((res) => res.json())
-					.then((data) => {
-						const items = Array.isArray(data) ? data : data.value || []
-						const fetchOptions = items.map((item: any) => item.Title || item.name || item)
-						this.fieldOptionsCache[field.name] = fetchOptions
-						this.forceUpdate()
-					})
-			}
-			return (
-				<div style={{ marginBottom: 5 }}>
-					<label style={{ display: "block", fontWeight: 600 }}>{field.label}</label>
-					<select value={value} onChange={(e) => this.props.onChange(field.name, e.target.value)} disabled={readOnly} style={commonStyle}>
-						<option value="">--- Select ---</option>
-						{options.map((opt) => (
-							<option key={opt} value={opt}>
-								{opt}
-							</option>
-						))}
-					</select>
-					{error && <div style={{ color: "red", fontSize: "0.8em" }}>{error}</div>}
-				</div>
-			)
-		}
-
-		if (field.type === "checkbox") {
-			return (
-				<div style={{ marginBottom: 5 }}>
-					<label>
-						<input type="checkbox" checked={!!value} onChange={(e) => this.props.onChange(field.name, e.target.value)} disabled={readOnly} />
-						{field.label}
-					</label>
-				</div>
-			)
-		}
-
-		if (field.type === "radio" && field.options) {
-			return (
-				<div style={{ marginBottom: 5 }}>
-					<label style={{ display: "block", fontWeight: 600 }}>{field.label}</label>
-					<div>
-						{field.options.map((opt) => (
-							<label key={opt} style={{ marginRight: 10 }}>
-								<input type="radio" name={field.name} value={opt} checked={value === opt} onChange={(e) => this.props.onChange(field.name, e.target.value)} disabled={readOnly} />
-								{opt}
-							</label>
-						))}
-					</div>
-				</div>
-			)
-		}
-
-		// default text/number input
-		return (
-			<div style={{ marginBottom: 5 }}>
-				<label style={{ display: "block", fontWeight: 600 }}>{field.label}</label>
-				<input
-					type={field.type === "number" ? "number" : "text"}
-					value={value}
-					onChange={(e) => this.props.onChange(field.name, e.target.value)}
-					readOnly={definition.isReadOnly || field.readonly}
-					style={commonStyle}
-				/>
-				{error && <div style={{ color: "red", fontSize: "0.8em" }}>{error}</div>}
-			</div>
-		)
-	}
-
-	private validateField(field: FieldDefinition, value: any): string | null {
-		if (field.readonly) return null
-
-		const trimmedValue = typeof value === "string" ? value.trim() : value
-
-		if (field.required && (!trimmedValue || trimmedValue === "")) {
-			return `${field.label} is required.`
-		}
-
-		if (field.minLength && trimmedValue.length < field.minLength) {
-			return `${field.label} must be least ${field.minLength} characters.`
-		}
-
-		if (field.maxLength && trimmedValue.length > field.maxLength) {
-			return `${field.label} must be no more ${field.maxLength} characters.`
-		}
-
-		if ((field.type = "number")) {
-			const num = parseFloat(trimmedValue)
-			if (field.minValue !== undefined && num < field.minValue) {
-				return `${field.label} must be >= ${field.minValue}.`
-			}
-			if (field.maxValue !== undefined && num < field.maxValue) {
-				return `${field.label} must be <= ${field.minValue}.`
-			}
-		}
-		if (field.pattern) {
-			const regex = new RegExp(field.pattern)
-			if (!regex.test(trimmedValue)) {
-				return `${field.label} format is invalid.`
-			}
-		}
-		return null
-	}*/
-
-	private renderFieldsWithGrid = (fields: FieldDefinition[], fieldsPerRow?: number): JSX.Element => {
-		const containerStyle: React.CSSProperties = {
-			width: "100%",
-			boxSizing: "border-box"
-		}
-		const rowStyle: React.CSSProperties = {
-			display: "flex",
-			flexWrap: "wrap",
-			gap: 10,
-			marginBottom: 10,
-			width: "100%",
-			boxSizing: "border-box"
-		}
-		const fieldStyle = (span: number) => ({
-			flexBasis: `${(span / 12) * 100}%`,
-			maxWidth: `${(span / 12) * 100}%`,
-			minWidth: 0,
-			boxSizing: "border-box",
-			border: "1px dashed #ccc"
-		})
-
-		const totalColumns = 12
-		const perRow = fieldsPerRow || 2
-		const defaultSpan = totalColumns / perRow
-
-		const rows = []
-		let currentRow: JSX.Element[] = []
-		let usedColumns = 0
-
-		fields.forEach((field, idx) => {
-			const span = field.colSpan || defaultSpan
-
-			// Start a new row if needed
-			if (usedColumns + span > totalColumns) {
-				rows.push(
-					<div key={`row-${idx}`} style={rowStyle}>
-						{currentRow}
-					</div>
-				)
-				currentRow = []
-				usedColumns = 0
-			}
-
-			const fieldComponent =
-				field.name === "CIF" ? (
-					<CifLookup
-						fieldsPerRow={4}
-						onCustomerLoaded={(cust) => {
-							this.props.onChange("CIF", cust.CIFId)
-							this.props.onChange("CustomerName", cust.CIFLongName)
-							this.props.onChange("Mobile", cust.TelephoneHome)
-							this.props.onChange("Segment", cust.RankingDescEng)
-							this.props.onChange("Priority", cust.CIFTypeDescription)
-							this.props.onChange("Nationality", cust.Nationality)
-							this.props.onChange("AccountOfficerId", cust.RelOfficerId)
-							this.props.onChange("AccountOfficerName", cust.RelOfficerName)
-							this.props.onChange("Branch", cust.BranchNameEng)
-							this.props.onChange("Telephone2", cust.CIFTel)
-							this.props.onChange("Email", cust.Email)
-							this.props.onChange("CreationDate", cust.CreationDate)
-						}}
-						onLoadingChange={(loading) => {
-							if (this.props.onLoadingChange) this.props.onLoadingChange(loading)
-						}}
-						onError={(error) => {
-							if (this.props.onError) this.props.onError(error)
-						}}
-					/>
-				) : (
-					FieldRenderer.renderField({
-						field,
-						value: this.props.formData[field.name],
-						formDefinition: this.props.definition,
-						onChange: this.props.onChange,
-						readonly: false
-					})
-				)
-
-			currentRow.push(
-				<div key={field.name} style={fieldStyle(span)}>
-					{fieldComponent}
-				</div>
-			)
-
-			usedColumns += span
-		})
-
-		// Push final row
-		if (currentRow.length > 0) {
-			rows.push(
-				<div key={`row-last`} style={rowStyle}>
-					{currentRow}
-				</div>
-			)
-		}
-
-		return <div style={containerStyle}>{rows}</div>
-	}
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <label style={{ display: "block", fontWeight: 600 }}>{field.label}</label>
+      <div
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+        onClick={() => document.getElementById(`file-input-${field.name}`)?.click()}
+        style={dropZoneStyle}
+      >
+        Drag and drop file{isMultiple ? "s" : ""} here or click to browse
+      </div>
+      <input
+        type="file"
+        id={`file-input-${field.name}`}
+        style={{ display: "none" }}
+        multiple={isMultiple}
+        onChange={handleChange}
+      />
+    </div>
+  );
 }
