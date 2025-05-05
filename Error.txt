@@ -1,72 +1,113 @@
 {
-  "formId": 0,
-  "templateId": 200,
+  "formId": "CUST-REQ-0001",
+  "templateId": "Template-CIF-Onboarding",
   "userRole": "Initiator",
-  "currentStage": null,
+  "currentStage": "Initiation",
+  "title": "Customer Onboarding Form",
   "isReadOnly": false,
-  "fields": [],
+  "fieldsPerRow": 3,
+  "fields": [
+    {
+      "name": "CIF",
+      "label": "CIF Number",
+      "type": "text",
+      "required": true,
+      "colSpan": 6
+    },
+    {
+      "name": "CivilId",
+      "label": "Civil ID",
+      "type": "text",
+      "colSpan": 6
+    }
+  ],
   "sections": [
     {
-      "name": "CaseInputSection",
-      "label": "Case Details",
+      "name": "CustomerInfo",
+      "label": "Customer Info",
+      "fieldsPerRow": 3,
+      "fields": [
+        {
+          "name": "CustomerName",
+          "label": "Full Name",
+          "type": "text",
+          "required": true,
+          "minLength": 3,
+          "colSpan": 6
+        },
+        {
+          "name": "Email",
+          "label": "Email Address",
+          "type": "text",
+          "pattern": "^[\\w.-]+@[\\w.-]+\\.\\w{2,}$",
+          "colSpan": 6
+        },
+        {
+          "name": "Mobile",
+          "label": "Mobile No",
+          "type": "text",
+          "required": true,
+          "colSpan": 4
+        },
+        {
+          "name": "Segment",
+          "label": "Customer Segment",
+          "type": "dropdown",
+          "options": ["Retail", "Premium", "VIP"],
+          "required": true,
+          "colSpan": 4
+        },
+        {
+          "name": "Nationality",
+          "label": "Nationality",
+          "type": "text",
+          "colSpan": 4
+        }
+      ]
+    },
+    {
+      "name": "CaseInfo",
+      "label": "Case Information",
+      "visibleWhen": "Segment === 'VIP'",
+      "fieldsPerRow": 2,
       "fields": [
         {
           "name": "Source",
-          "label": "Source",
+          "label": "Case Source",
           "type": "dropdown",
-          "options": ["Phone", "Email", "Walk-in"],
+          "options": ["Branch", "Call Center", "Online"],
+          "required": true,
           "colSpan": 6
         },
         {
           "name": "CaseRelatedTo",
           "label": "Case Related To",
           "type": "dropdown",
-          "options": ["Loan", "Card", "Account"],
+          "options": ["Card", "Loan", "Account"],
+          "required": true,
           "colSpan": 6
         }
       ],
       "sections": [
         {
-          "name": "LoanCaseSection",
-          "label": "Loan Details",
-          "visibleWhen": "CaseRelatedTo == 'Loan'",
+          "name": "CardDetails",
+          "label": "Card Details",
+          "visibleWhen": "CaseRelatedTo === 'Card'",
+          "fieldsPerRow": 2,
           "fields": [
             {
-              "name": "LoanNumber",
-              "label": "Loan Number",
-              "type": "text",
+              "name": "CardType",
+              "label": "Card Type",
+              "type": "dropdown",
+              "options": ["Visa", "Mastercard"],
               "colSpan": 6
             },
             {
-              "name": "LoanType",
-              "label": "Loan Type",
-              "type": "text",
-              "colSpan": 6
-            }
-          ]
-        },
-        {
-          "name": "CardCaseSection",
-          "label": "Card Details",
-          "visibleWhen": "CaseRelatedTo == 'Card'",
-          "fields": [
-            {
-              "name": "CardNumber",
-              "label": "Card Number",
-              "type": "text",
-              "colSpan": 6
-            }
-          ]
-        },
-        {
-          "name": "AccountCaseSection",
-          "label": "Account Details",
-          "visibleWhen": "CaseRelatedTo == 'Account'",
-          "fields": [
-            {
-              "name": "AccountNumber",
-              "label": "Account Number",
-              "type": "text",
+              "name": "CardLimit",
+              "label": "Card Limit",
+              "type": "number",
+              "minValue": 500,
+              "maxValue": 10000,
               "colSpan": 6
             }
           ]
@@ -76,8 +117,15 @@
   ],
   "actions": [
     {
-      "label": "Submit",
-      "visibleWhen": "userRole == 'Initiator'"
+      "label": "Submit"
+    },
+    {
+      "label": "Send Back",
+      "visibleWhen": "userRole === 'Approver' && currentStage !== 'Initiation'"
+    },
+    {
+      "label": "Resubmit",
+      "visibleWhen": "userRole === 'Initiator' && currentStage === 'Amendment'"
     }
   ]
 }
