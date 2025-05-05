@@ -1,22 +1,74 @@
 if (field.type === "file") {
   const isMultiple = !!field.multiple;
-  const handleDrop = (e: React.DragEvent) => {
+  const accept = field.accept || "*/*";
+  const maxSizeMB = field.maxSizeMB || 10;
+
+  const validateFiles = (files: File[]): string | null => {
+    for (const file of files) {
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        return `${file.name} exceeds ${maxSizeMB}MB limit.`;
+      }
+    }
+    return null;
+  };
+
+  const handleFiles = (files: File[]) => {
+    const error = validateFiles(files);
+    if (error) {
+      alert(error); // Or replace with a toast
+      return;
+    }
+
+    if (field.uploadUrl) {
+      files.forEach((file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        fetch(field.uploadUrl!, {
+          method: "POST",
+          body: formData
+        })
+          .then((res) => res.ok ? res.json() : Promise.reject(res.statusText))
+          .then((result) => {
+            console.log("Uploaded:", result);
+            props.onChange(field.name, result); // store response
+          })
+          .catch((err) => alert(`Upload failed: ${err}`));
+      });
+    } else {
+      props.onChange(field.name, isMultiple ? files : files[0] || null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const files = Array.from(e.dataTransfer.files || []);
-    this.props.onChange(field.name, isMultiple ? files : files[0]);
+    const rawFiles = e.dataTransfer.files;
+    const files: File[] = [];
+    for (let i = 0; i < rawFiles.length; i++) {
+      files.push(rawFiles.item(i)!);
+    }
+    handleFiles(files);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    this.props.onChange(field.name, isMultiple ? files : files[0]);
+    const input = e.target as HTMLInputElement;
+    const rawFiles = input.files;
+    const files: File[] = [];
+    if (rawFiles) {
+      for (let i = 0; i < rawFiles.length; i++) {
+        files.push(rawFiles.item(i)!);
+      }
+    }
+    handleFiles(files);
   };
 
   const dropZoneStyle: React.CSSProperties = {
-    border: "2px dashed #999",
+    border: "2px dashed #aaa",
     padding: 20,
     textAlign: "center",
     backgroundColor: "#f9f9f9",
-    cursor: "pointer"
+    cursor: "pointer",
+    marginBottom: 10
   };
 
   return (
@@ -28,13 +80,14 @@ if (field.type === "file") {
         onClick={() => document.getElementById(`file-input-${field.name}`)?.click()}
         style={dropZoneStyle}
       >
-        Drag and drop file{isMultiple ? "s" : ""} here or click to browse
+        Drag & drop file{isMultiple ? "s" : ""} here or click to upload
       </div>
       <input
         type="file"
         id={`file-input-${field.name}`}
         style={{ display: "none" }}
         multiple={isMultiple}
+        accept={accept}
         onChange={handleChange}
       />
     </div>
