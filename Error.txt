@@ -1,79 +1,51 @@
-import { sp } from "@pnp/sp";
+import { FieldDefinition, FormDefinition, SectionDefinition } from "../models";
+import ExpressEvaluator from "./ExpressionEvaluator";
+import { getExpressionDependencies } from "./ExpressionUtils";
 
-export async function saveFormRecord(
-  formData: any,
-  listName: string,
-  fieldsToExtract: string[] = [],
-  status: string = "Draft"
-): Promise<string> {
-  const formId = formData.FormId || generateGuid();
+export const buildInitialFormData = (def: FormDefinition): any => {
+  const formData: any = {}
 
-  // Build payload with extracted fields + JSON
-  const extractedValues: any = {
-    FormId: formId,
-    Status: status,
-    FormJson: JSON.stringify(formData)
-  };
+  const initField = (field: FieldDefinition) => {
+    if (field.defaultExpression) {
+      try {
+        const dependsOn = getExpressionDependencies(field.defaultExpression)
+        const allFilled = dependsOn.every((key) => !!formData[key])
 
-  // Add extracted fields if present in formData
-  for (const field of fieldsToExtract) {
-    if (formData[field] !== undefined) {
-      extractedValues[field] = formData[field];
+        if (allFilled) {
+          formData[field.name] = ExpressEvaluator(field.defaultExpression, formData)
+        } else {
+          formData[field.name] = ""
+        }
+      } catch {
+        formData[field.name] = ""
+      }
+    } else if (field.defaultValue !== undefined) {
+      formData[field.name] = field.defaultValue
+    } else {
+      formData[field.name] = ""
     }
   }
 
-  // Check if item exists
-  const existing = await sp.web.lists.getByTitle(listName)
-    .items.filter(`FormId eq '${formId}'`).top(1).get();
-
-  if (existing.length > 0) {
-    await sp.web.lists.getByTitle(listName)
-      .items.getById(existing[0].Id)
-      .update(extractedValues);
-  } else {
-    await sp.web.lists.getByTitle(listName).items.add(extractedValues);
+  const walkSections = (sections: SectionDefinition[]) => {
+    sections.forEach(section => {
+      if (section.fields) {
+        section.fields.forEach(initField)
+      }
+      if (section.sections) {
+        walkSections(section.sections)
+      }
+    })
   }
 
-  return formId;
-}
+  // Top-level fields
+  if (def.fields) {
+    def.fields.forEach(initField)
+  }
 
-function generateGuid(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    const v = c === "x" ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
+  // Section fields (nested)
+  if (def.sections) {
+    walkSections(def.sections)
+  }
 
-
-
-private validateVisibleFields(): string[] {
-  const errors: string[] = [];
-  const { formData, definition } = this.props;
-
-  const processFields = (fields: FieldDefinition[] = []) => {
-    fields.forEach((field) => {
-      const visible = !field.visibleWhen || ExpressEvaluator(field.visibleWhen, formData);
-      if (!visible) return;
-
-      const error = FieldRenderer.validateField(field, formData[field.name]);
-      if (error) errors.push(`${field.label}: ${error}`);
-    });
-  };
-
-  const processSections = (sections: SectionDefinition[] = []) => {
-    sections.forEach((section) => {
-      const sectionVisible = !section.visibleWhen || ExpressEvaluator(section.visibleWhen, formData);
-      if (!sectionVisible) return;
-
-      processFields(section.fields);
-      processSections(section.sections); // Handle nested
-    });
-  };
-
-  // Validate top-level fields and sections
-  processFields(definition.fields);
-  processSections(definition.sections);
-
-  return errors;
+  return formData
 }
