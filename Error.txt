@@ -159,3 +159,20 @@
     }
   ]
 }
+
+if (field.type === "radio" && field.options) {
+			return (
+				<div style={{ marginBottom: 5 }}>
+					<label style={{ display: "block", fontWeight: 600 }}>{field.label}</label>
+					<div>
+						{field.options.map((opt) => (
+							<label key={opt} style={{ marginRight: 10 }}>
+								<input type="radio" name={field.name} value={opt} checked={value === opt} onChange={(e) => onChange(field.name, e.target.value)} disabled={isReadOnly} />
+								{opt}
+							</label>
+						))}
+					</div>
+					{error && <div style={{ color: "red", fontSize: "0.8em" }}>{error}</div>}
+				</div>
+			)
+		}
