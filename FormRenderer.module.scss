@@ -1,0 +1,86 @@
+.formWrapper {
+  padding: 20px;
+
+  h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .section {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #fafafa;
+
+    &.nested {
+      border: none;
+      padding: 0;
+    }
+
+    h3 {
+      font-size: 18px;
+      margin: 0 0 15px 0;
+      font-weight: 600;
+    }
+  }
+
+  .fieldRow {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    gap: 10px;
+  }
+
+  .fieldColumn {
+    box-sizing: border-box;
+    padding-right: 10px;
+  }
+
+  .cifLookup {
+    margin-bottom: 20px;
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .cifRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+
+      > div {
+        flex: 1 1 300px;
+        min-width: 200px;
+      }
+    }
+
+    .customerDataGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+
+      .fieldBlock {
+        label {
+          font-weight: 600;
+        }
+
+        div {
+          padding: 4px 0;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 600px) {
+    .fieldRow {
+      flex-direction: column;
+    }
+
+    .cifLookup .cifRow {
+      flex-direction: column;
+    }
+  }
+}
