@@ -1,0 +1,43 @@
+# Load SharePoint CSOM Assemblies
+Add-Type -Path "C:\Path\To\Microsoft.SharePoint.Client.dll"
+Add-Type -Path "C:\Path\To\Microsoft.SharePoint.Client.Runtime.dll"
+
+# Connect to SharePoint
+$siteUrl = "http://yoursharepoint/sites/yoursite"
+$ctx = New-Object Microsoft.SharePoint.Client.ClientContext($siteUrl)
+
+# Provide credentials if needed
+$ctx.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+
+# Get the list
+$list = $ctx.Web.Lists.GetByTitle("Your List Name")
+
+# Define the CAML query to limit loaded fields (and items)
+$query = New-Object Microsoft.SharePoint.Client.CamlQuery
+$query.ViewXml = @"
+<View>
+  <ViewFields>
+    <FieldRef Name='Title'/>
+    <FieldRef Name='MultilineColumn1'/>
+    <FieldRef Name='MultilineColumn2'/>
+  </ViewFields>
+  <RowLimit>2000</RowLimit>
+</View>
+"@
+
+$items = $list.GetItems($query)
+$ctx.Load($items)
+$ctx.ExecuteQuery()
+
+# Prepare CSV export
+$output = @()
+foreach ($item in $items) {
+    $output += [PSCustomObject]@{
+        Title = $item["Title"]
+        Notes = $item["MultilineColumn1"]
+        Comments = $item["MultilineColumn2"]
+    }
+}
+
+# Export to CSV
+$output | Export-Csv -Path "C:\Temp\Export.csv" -NoTypeInformation -Encoding UTF8
