@@ -1,43 +1,60 @@
-# Load SharePoint CSOM Assemblies
+# Load CSOM assemblies
 Add-Type -Path "C:\Path\To\Microsoft.SharePoint.Client.dll"
 Add-Type -Path "C:\Path\To\Microsoft.SharePoint.Client.Runtime.dll"
 
 # Connect to SharePoint
 $siteUrl = "http://yoursharepoint/sites/yoursite"
 $ctx = New-Object Microsoft.SharePoint.Client.ClientContext($siteUrl)
-
-# Provide credentials if needed
 $ctx.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+$ctx.RequestTimeout = 1000000
 
 # Get the list
 $list = $ctx.Web.Lists.GetByTitle("Your List Name")
 
-# Define the CAML query to limit loaded fields (and items)
-$query = New-Object Microsoft.SharePoint.Client.CamlQuery
-$query.ViewXml = @"
+# Get date 30 days ago
+$cutoff = (Get-Date).AddDays(-30).ToString("yyyy-MM-ddTHH:mm:ssZ")
+
+# CAML to get items older than 30 days (Created < cutoff)
+$viewXml = @"
 <View>
+  <Query>
+    <Where>
+      <Lt>
+        <FieldRef Name='Created' />
+        <Value Type='DateTime' IncludeTimeValue='FALSE'>$cutoff</Value>
+      </Lt>
+    </Where>
+  </Query>
   <ViewFields>
-    <FieldRef Name='Title'/>
-    <FieldRef Name='MultilineColumn1'/>
-    <FieldRef Name='MultilineColumn2'/>
+    <FieldRef Name='ID'/>
   </ViewFields>
-  <RowLimit>2000</RowLimit>
+  <RowLimit>100</RowLimit>
 </View>
 "@
 
-$items = $list.GetItems($query)
-$ctx.Load($items)
-$ctx.ExecuteQuery()
+# Setup query
+$query = New-Object Microsoft.SharePoint.Client.CamlQuery
+$query.ViewXml = $viewXml
 
-# Prepare CSV export
-$output = @()
-foreach ($item in $items) {
-    $output += [PSCustomObject]@{
-        Title = $item["Title"]
-        Notes = $item["MultilineColumn1"]
-        Comments = $item["MultilineColumn2"]
+# Loop and delete in batches
+do {
+    $items = $list.GetItems($query)
+    $ctx.Load($items)
+    $ctx.ExecuteQuery()
+
+    if ($items.Count -eq 0) { break }
+
+    foreach ($item in $items) {
+        Write-Host "Deleting item ID: $($item.Id)"
+        $item.DeleteObject()
     }
-}
 
-# Export to CSV
-$output | Export-Csv -Path "C:\Temp\Export.csv" -NoTypeInformation -Encoding UTF8
+    # Commit the deletes
+    $ctx.ExecuteQuery()
+
+    # Continue to next page
+    $query.ListItemCollectionPosition = $items.ListItemCollectionPosition
+
+} while ($query.ListItemCollectionPosition -ne $null)
+
+Write-Host "Old items deleted successfully."
