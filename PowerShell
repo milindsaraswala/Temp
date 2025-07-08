@@ -1,60 +1,50 @@
-# Load CSOM assemblies
-Add-Type -Path "C:\Path\To\Microsoft.SharePoint.Client.dll"
-Add-Type -Path "C:\Path\To\Microsoft.SharePoint.Client.Runtime.dll"
+# InfoPath Rules Extractor
+param (
+    [string]$SourcePath = "C:\InfoPathExported",
+    [string]$OutputCsv = "C:\InfoPathRulesExport.csv"
+)
 
-# Connect to SharePoint
-$siteUrl = "http://yoursharepoint/sites/yoursite"
-$ctx = New-Object Microsoft.SharePoint.Client.ClientContext($siteUrl)
-$ctx.Credentials = [System.Net.CredentialCache]::DefaultCredentials
-$ctx.RequestTimeout = 1000000
+$rulesList = @()
 
-# Get the list
-$list = $ctx.Web.Lists.GetByTitle("Your List Name")
-
-# Get date 30 days ago
-$cutoff = (Get-Date).AddDays(-30).ToString("yyyy-MM-ddTHH:mm:ssZ")
-
-# CAML to get items older than 30 days (Created < cutoff)
-$viewXml = @"
-<View>
-  <Query>
-    <Where>
-      <Lt>
-        <FieldRef Name='Created' />
-        <Value Type='DateTime' IncludeTimeValue='FALSE'>$cutoff</Value>
-      </Lt>
-    </Where>
-  </Query>
-  <ViewFields>
-    <FieldRef Name='ID'/>
-  </ViewFields>
-  <RowLimit>100</RowLimit>
-</View>
-"@
-
-# Setup query
-$query = New-Object Microsoft.SharePoint.Client.CamlQuery
-$query.ViewXml = $viewXml
-
-# Loop and delete in batches
-do {
-    $items = $list.GetItems($query)
-    $ctx.Load($items)
-    $ctx.ExecuteQuery()
-
-    if ($items.Count -eq 0) { break }
-
-    foreach ($item in $items) {
-        Write-Host "Deleting item ID: $($item.Id)"
-        $item.DeleteObject()
+# Get all .xsl files (views)
+Get-ChildItem -Path $SourcePath -Filter *.xsl -Recurse | ForEach-Object {
+    $file = $_.FullName
+    Write-Host "Processing $file"
+    
+    try {
+        [xml]$xml = Get-Content -Path $file
+    }
+    catch {
+        Write-Warning "Could not parse XML from $file"
+        return
     }
 
-    # Commit the deletes
-    $ctx.ExecuteQuery()
+    # Look for xd:Rule nodes in XSL
+    $namespaceManager = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+    $namespaceManager.AddNamespace("xsl", "http://www.w3.org/1999/XSL/Transform")
+    $namespaceManager.AddNamespace("xd", "http://schemas.microsoft.com/office/infopath/2003/xslt")
 
-    # Continue to next page
-    $query.ListItemCollectionPosition = $items.ListItemCollectionPosition
+    $rules = $xml.SelectNodes("//xd:rule", $namespaceManager)
 
-} while ($query.ListItemCollectionPosition -ne $null)
+    foreach ($rule in $rules) {
+        $ruleName = $rule.GetAttribute("name")
+        $control = $rule.ParentNode.GetAttribute("match") # XPath where rule applies
+        $conditions = $rule.SelectNodes(".//xd:condition", $namespaceManager) | ForEach-Object { $_.OuterXml -join ";" }
+        $actions = $rule.SelectNodes(".//xd:action", $namespaceManager) | ForEach-Object { $_.OuterXml -join ";" }
 
-Write-Host "Old items deleted successfully."
+        $rulesList += [PSCustomObject]@{
+            ViewFile   = $_.Name
+            RuleName   = $ruleName
+            Control    = $control
+            Conditions = $conditions
+            Actions    = $actions
+        }
+    }
+}
+
+if ($rulesList.Count -gt 0) {
+    $rulesList | Export-Csv -Path $OutputCsv -NoTypeInformation -Encoding UTF8
+    Write-Host "✅ Extraction complete. Rules exported to $OutputCsv" -ForegroundColor Green
+} else {
+    Write-Warning "No rules found in the provided path."
+}
