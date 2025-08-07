@@ -41,6 +41,7 @@ export default class ChatbotExtensionApplicationCustomizer
         bottom: 30px;
         right: 30px;
         width: 360px;
+        height: 400px;
         background: #fff;
         border: 1px solid #ccc;
         border-radius: 12px;
@@ -73,6 +74,7 @@ export default class ChatbotExtensionApplicationCustomizer
       }
 
       .chat-messages {
+        flex: 1;
         padding: 10px;
         height: 300px;
         display:flex;
@@ -148,6 +150,8 @@ export default class ChatbotExtensionApplicationCustomizer
         cursor: pointer;
         border: 1px solid #ccc;
         white-space: nowrap;
+        margin: 6px auto;
+        display: none;
      }
 
      .blinking-cursor {
@@ -217,12 +221,12 @@ export default class ChatbotExtensionApplicationCustomizer
         </div>
       </div>
       <div class="chat-messages" id="chatMessages"></div>
+      <div id="stopRespondingBtn" class="chat-stop-btn" style="display:none">
+          ⏹	Stop Responding
+      </div>
       <div class="chat-input">
         <input type="text" id="chatInput" placeholder="Type a message..." />
         <button id="sendBtn">▶</button>
-        <div id="stopRespondingBtn" class="chat-stop-btn" style="display:none">
-          ⏹	Stop Responding
-        </div>
       </div>
     `;
 
@@ -319,10 +323,8 @@ export default class ChatbotExtensionApplicationCustomizer
     messageDiv.appendChild(blinking);
 
     // Stop button
-    const stopButton: HTMLButtonElement = document.createElement('button');
-    // stopButton.className = 'stop-button';
-    // stopButton.innerHTML = '⏹	Stop Responding';
-    container.appendChild(stopButton);
+    const stopButton: HTMLButtonElement = document.querySelector('#stopRespondingBtn') as HTMLButtonElement;
+    stopButton.style.display = 'block';
 
     // Abort Controller
     const { controller, signal } = createAbortController();
@@ -336,7 +338,7 @@ export default class ChatbotExtensionApplicationCustomizer
     stopButton.addEventListener('click', () => {
       controller.abort();
       stopButton.remove();
-      // typingDiv.remove();
+      stopButton.style.display = 'none';
       blinking.remove();
       wasAbortedManually = true;
     });
@@ -413,6 +415,7 @@ export default class ChatbotExtensionApplicationCustomizer
     }
 
     // Cleanup
+    stopButton.style.display = 'none';
     stopButton.remove();
     blinking.remove();
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
