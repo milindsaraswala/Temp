@@ -335,10 +335,13 @@ export default class ChatbotExtensionApplicationCustomizer
     let wasAbortedManually: boolean = false;
 
     // Stop logic
-    stopButton.addEventListener('click', () => {
+    const newStopButton: HTMLButtonElement = stopButton.cloneNode(true) as HTMLButtonElement;
+    stopButton.parentNode?.replaceChild(newStopButton, stopButton);
+
+    newStopButton.style.display = 'block';
+    newStopButton.addEventListener('click', () => {
       controller.abort();
-      stopButton.remove();
-      stopButton.style.display = 'none';
+      newStopButton.style.display = 'none';
       blinking.remove();
       wasAbortedManually = true;
     });
@@ -416,7 +419,7 @@ export default class ChatbotExtensionApplicationCustomizer
 
     // Cleanup
     stopButton.style.display = 'none';
-    stopButton.remove();
+    // stopButton.remove();
     blinking.remove();
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
