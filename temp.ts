@@ -14,7 +14,7 @@ export default class ChatbotExtensionApplicationCustomizer
   public onInit(): Promise<void> {
     this.injectStyles();
     this.injectLauncher();
-    this.injectChatWidget();
+    // this.injectChatWidget();
     return Promise.resolve();
   }
 
@@ -29,12 +29,44 @@ export default class ChatbotExtensionApplicationCustomizer
         background: #d0021b;
         color: white;
         font-weight: bold;
-        padding: 10px 16px;
-        border-radius: 20px;
-        font-size: 14px;
+        border-radius: 50%;
+        font-size: 18px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 46px;
+        width: 46px;
+        transition: all 0.3s ease-in-out;
+        overflow: hidden;
+        white-space: nowrap;
       }
+
+      .chat-launcher .chat-text  {
+        display: none;
+        font-size: 14px;
+        margin-left: 8px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .chat-launcher .chat-icon {
+       font-size: 20px;
+       line-height: 1;
+      }
+
+      .chat-launcher:not(.collapsed) {
+        border-radius: 20px;
+        padding: 10px 16px;
+        width: auto;
+      }
+
+       .chat-launcher:not(.collapsed) .chat-text {
+          display: inline;
+          opacity: 1;
+       }
 
       .chat-container {
         position: fixed;
@@ -167,21 +199,42 @@ export default class ChatbotExtensionApplicationCustomizer
      }
 
      .chat-bot-typing {
-        font-size: 13px;
-        font-style: italic;
-        color: #666;
-        marging-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 16px;
+        margin-top: 4px;
+        margin-left: 6px;
      }
 
-     .dot span{
-        animation: blink 1.2s infinite steps(1);
-        opacity: 0;
-        padding-left: 1px;
+     .chat-bot-typing span {
+        width: 6px;
+        height: 6px;
+        background-color: #555;
+        border-radius: 50%;
+        animation: typing-bounce 1.2s infinite ease-in-out;
      }
 
-     .dot span:nth-child(1) { animation-delay: 0s; }
-     .dot span:nth-child(2) { animation-delay: 0.2s; }
-     .dot span:nth-child(3) { animation-delay: 0.4s; }
+     .chat-bot-typing span:nth-child(1){
+        animation-delay: 0s;
+     }
+     .chat-bot-typing span:nth-child(2){
+        animation-delay: 0.2s;
+     }
+     .chat-bot-typing span:nth-child(3){
+        animation-delay: 0.4s;
+     }
+
+     @keyframes typing-bounce{
+        0%, 80%, 100% {
+          transform: scale(0.6);
+          opacity: 0.4;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+     }
 
      .chat-header-buttons button:hover {
         opacity: 1;
@@ -198,15 +251,29 @@ export default class ChatbotExtensionApplicationCustomizer
 
   private injectLauncher(): void {
     const launcher: HTMLDivElement = document.createElement('div');
-    launcher.className = 'chat-launcher';
-    launcher.innerHTML = '<span>How can I help you?💬</span>';
+    launcher.className = 'chat-launcher collapsed';
+
+    launcher.innerHTML = `
+      <div class="chat-icon">
+        💬
+      </div>
+      <div class="chat-text">
+        How can I help you?
+      </div>
+    `;
+
     launcher.title = 'Chat with us';
+
     launcher.onclick = () => {
       launcher.style.display = 'none';
       this.injectChatWidget();
     };
 
     document.body.appendChild(launcher);
+
+    setTimeout(() => {
+      launcher.classList.remove('collapsed');
+    }, 5000);
   }
 
   private injectChatWidget(): void {
@@ -256,6 +323,7 @@ export default class ChatbotExtensionApplicationCustomizer
     for (const msg of this.messages) {
       this.renderMessage(messagesDiv, msg.from, msg.message);
     }
+    this.scrollTopBottom(messagesDiv);
 
     const draft: string = safeStorage.get<string>('chat_draft', '');
     if (draft) { input.value = draft; }
@@ -292,7 +360,7 @@ export default class ChatbotExtensionApplicationCustomizer
     }
 
     container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
+    this.scrollTopBottom(container);
   }
 
   private async sendMessage(input: HTMLInputElement, messagesDiv: HTMLElement, container: HTMLElement): Promise<void> {
@@ -312,19 +380,15 @@ export default class ChatbotExtensionApplicationCustomizer
     messagesDiv.appendChild(messageDiv);
 
     // Typing indicator
-    // const typingDiv: HTMLDivElement = document.createElement('div');
-    // typingDiv.className = 'chat-bot-typing';
-    // // tslint:disable-next-line
-    // typingDiv.innerHTML = `<span>Bot is typing<span class="dots"><span>.</span><span>.</span><span>.</span></span></span>`;
-    // messagesDiv.appendChild(typingDiv);
+    const typingIndicator: HTMLDivElement = document.createElement('div') as HTMLDivElement;
+    typingIndicator.className = 'chat-bot-typing';
+    // tslint:disable-next-line
+    typingIndicator.innerHTML = `<span></span><span></span><span></span>`;
+    messagesDiv.appendChild(typingIndicator);
 
-    const blinking = document.createElement('span');
-    blinking.className = 'blinking-cursor';
-    messageDiv.appendChild(blinking);
-
-    // Stop button
-    const stopButton: HTMLButtonElement = document.querySelector('#stopRespondingBtn') as HTMLButtonElement;
-    stopButton.style.display = 'block';
+    // const blinking = document.createElement('span');
+    // blinking.className = 'blinking-cursor';
+    // messageDiv.appendChild(blinking);
 
     // Abort Controller
     const { controller, signal } = createAbortController();
@@ -334,17 +398,21 @@ export default class ChatbotExtensionApplicationCustomizer
     let renderTimeout: number | null = undefined;
     let wasAbortedManually: boolean = false;
 
-    // Stop logic
-    const newStopButton: HTMLButtonElement = stopButton.cloneNode(true) as HTMLButtonElement;
-    stopButton.parentNode?.replaceChild(newStopButton, stopButton);
+    // Stop button
+    const oldStopButton: HTMLButtonElement = document.querySelector('#stopRespondingBtn') as HTMLButtonElement;
+    if (oldStopButton && oldStopButton.parentNode) {
+      const newStopButton: HTMLButtonElement = oldStopButton.cloneNode(true) as HTMLButtonElement;
+      oldStopButton.parentNode.replaceChild(newStopButton, oldStopButton);
 
-    newStopButton.style.display = 'block';
-    newStopButton.addEventListener('click', () => {
-      controller.abort();
-      newStopButton.style.display = 'none';
-      blinking.remove();
-      wasAbortedManually = true;
-    });
+      newStopButton.style.display = 'block';
+      newStopButton.style.display = 'block';
+      newStopButton.addEventListener('click', () => {
+        controller.abort();
+        newStopButton.style.display = 'none';
+        typingIndicator.remove();
+        wasAbortedManually = true;
+      });
+    }
 
     try {
       const res: Response = await fetch('https://hubproxy.corp.bbynuat.com/v1/chat-messages', {
@@ -397,6 +465,7 @@ export default class ChatbotExtensionApplicationCustomizer
       // Final render (no cursor)
       if (renderTimeout) { clearTimeout(renderTimeout); }
       messageDiv.innerHTML = marked(fullAnswer || '(No response)');
+      this.scrollTopBottom(messagesDiv);
 
       const copyBtn: HTMLButtonElement = document.createElement('button');
       copyBtn.className = 'copy-btn';
@@ -418,9 +487,24 @@ export default class ChatbotExtensionApplicationCustomizer
     }
 
     // Cleanup
-    stopButton.style.display = 'none';
-    // stopButton.remove();
-    blinking.remove();
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    const stopButtonFinal: HTMLButtonElement = document.querySelector('#stopRespondingBtn') as HTMLButtonElement;
+    if (stopButtonFinal) { stopButtonFinal.style.display = 'none'; }
+    typingIndicator.remove();
+    this.scrollTopBottom(messagesDiv);
+    // messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  private scrollTopBottom(container: HTMLElement): void {
+    let retries: number = 5;
+    const delay: number = 100;
+
+    const scroll: () => void = () => {
+      container.scrollTop = container.scrollHeight;
+
+      if (--retries > 0) {
+        setTimeout(scroll, delay);
+      }
+    };
+    setTimeout(scroll, delay);
   }
 }
