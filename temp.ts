@@ -64,12 +64,12 @@ export default class ChatbotExtensionApplicationCustomizer
       }
 
       .chat-header-buttons button {
+        color: white;
+        font-size: 18px;
+        opacity: 0.85;
+        transition: all 0.2s ease-in-out;
         background: transparent;
         border: none;
-        color: white;
-        margin-left: 8px;
-        font-size: 14px;
-        cursor: pointer;
       }
 
       .chat-messages {
@@ -82,9 +82,12 @@ export default class ChatbotExtensionApplicationCustomizer
 
       .chat-input {
         display: flex;
+        align-items: center;
+        gap: 6px;
         border-top: 1px solid #eee;
         padding: 6px;
-        gap: 6px;
+        flex-wrap: wrap;
+        position: relative;
       }
 
       .chat-input input {
@@ -137,16 +140,14 @@ export default class ChatbotExtensionApplicationCustomizer
         float: right;
      }
      .chat-stop-btn {
-        text-align: center;
-        font-size: 13px;
+        font-size: 12px;
         background: #f1f1f1;
         color: #555;
         padding: 4px 10px;
-        margin 5px auto 0;
         border-radius: 20px;
-        width: fit-content;
         cursor: pointer;
         border: 1px solid #ccc;
+        white-space: nowrap;
      }
 
      .blinking-cursor {
@@ -178,17 +179,14 @@ export default class ChatbotExtensionApplicationCustomizer
      .dot span:nth-child(2) { animation-delay: 0.2s; }
      .dot span:nth-child(3) { animation-delay: 0.4s; }
 
-     .chat-stop-btn:hover {
-        background-color: #e0e0e0;
+     .chat-header-buttons button:hover {
+        opacity: 1;
+        transform: scale(1.1);
      }
 
      .copy-btn:hover {
       color: #000;
      }
-
-    #clearChatBtn:hover, #minimizeBtn:hover {
-        color:hsl(0, 100.00%, 93.30%);
-    }
     `;
 
     document.head.appendChild(style);
@@ -219,12 +217,12 @@ export default class ChatbotExtensionApplicationCustomizer
         </div>
       </div>
       <div class="chat-messages" id="chatMessages"></div>
-      <div id="stopRespondingBtn" class="chat-stop-btn" style="display:none">
-        ⏹	Stop Responding
-      </div>
       <div class="chat-input">
-      <input type="text" id="chatInput" placeholder="Type a message..." />
-      <button id="sendBtn">▶</button>
+        <input type="text" id="chatInput" placeholder="Type a message..." />
+        <button id="sendBtn">▶</button>
+        <div id="stopRespondingBtn" class="chat-stop-btn" style="display:none">
+          ⏹	Stop Responding
+        </div>
       </div>
     `;
 
@@ -233,6 +231,13 @@ export default class ChatbotExtensionApplicationCustomizer
     const messagesDiv: HTMLElement = chatBox.querySelector('#chatMessages') as HTMLElement;
     const input: HTMLInputElement = chatBox.querySelector('#chatInput') as HTMLInputElement;
     const sendBtn: HTMLButtonElement = chatBox.querySelector('#sendBtn') as HTMLButtonElement;
+
+    const minimizeBtn: HTMLButtonElement = chatBox.querySelector('#minimizeBtn') as HTMLButtonElement;
+    minimizeBtn.addEventListener('click', () => {
+      chatBox.remove();
+      const launcher: HTMLElement = document.querySelector('.chat-launcher') as HTMLElement;
+      if (launcher) { launcher.style.display = 'block'; }
+    });
 
     const clearBtn: HTMLButtonElement = chatBox.querySelector('#clearChatBtn') as HTMLButtonElement;
     clearBtn.addEventListener('click', () => {
@@ -281,13 +286,6 @@ export default class ChatbotExtensionApplicationCustomizer
       copyBtn.addEventListener('click', () => { safeClipboardCopy(message, copyBtn); });
       div.appendChild(copyBtn);
     }
-
-    // const minimizeBtn: HTMLButtonElement = container.querySelector('#minimizeBtn') as HTMLButtonElement;
-    // minimizeBtn.addEventListener('click', () => {
-    //   container.remove();
-    //   const launcher: HTMLElement = document.querySelector('.chat-launcher') as HTMLElement;
-    //   if (launcher) { launcher.style.display = 'block'; }
-    // });
 
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
