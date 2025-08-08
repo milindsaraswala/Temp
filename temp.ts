@@ -26,36 +26,74 @@ export default class ChatbotExtensionApplicationCustomizer
         position: fixed;
         bottom: 30px;
         right: 30px;
-        background: #d0021b;
-        color: white;
-        font-weight: bold;
-        border-radius: 50%;
-        font-size: 18px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        cursor: pointer;
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        height: 46px;
-        width: 46px;
-        transition: all 0.3s ease-in-out;
-        overflow: hidden;
-        white-space: nowrap;
-      }
-
-      .chat-launcher .chat-text  {
-        display: none;
-        font-size: 14px;
-        margin-left: 8px;
-        white-space: nowrap;
-        opacity: 0;
-        transition: opacity 0.3s;
+        gap: 8px;
+        cursor: pointer;
+        z-index: 9999;
+        flex-direction: row-reverse;
       }
 
       .chat-launcher .chat-icon {
-       font-size: 20px;
-       line-height: 1;
+        width: 46px;
+        height: 46px;
+        background: #d0021b;
+        border-radius: 50%;
+        color: #fff;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       }
+
+    .chat-launcher .chat-text {
+        position: relative;
+        background: #d0021b;
+        color: #fff;
+        padding: 10px 16px;
+        border-radius: 22px;
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateX(8px) scale(0.98);
+        pointer-events: none;
+        transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .chat-launcher .chat-text::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        right: -8px;
+        transform: translateY(-50%);
+        top: 50%;
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-left: 10px solid #d0021b;
+    }
+
+    .chat-launcher .chat-text::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -3px;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        background: #d0021b;
+        border-radius: 50%;
+    }
+
+    .chat-launcher:hover .chat-text,
+    .chat-launcher:focus-within .chat-text {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        pointer-events: auto;
+    }
 
       .chat-launcher:not(.collapsed) {
         border-radius: 20px;
@@ -271,9 +309,9 @@ export default class ChatbotExtensionApplicationCustomizer
 
     document.body.appendChild(launcher);
 
-    setTimeout(() => {
-      launcher.classList.remove('collapsed');
-    }, 5000);
+    // setTimeout(() => {
+    //   launcher.classList.remove('collapsed');
+    // }, 5000);
   }
 
   private injectChatWidget(): void {
@@ -307,7 +345,13 @@ export default class ChatbotExtensionApplicationCustomizer
     minimizeBtn.addEventListener('click', () => {
       chatBox.remove();
       const launcher: HTMLElement = document.querySelector('.chat-launcher') as HTMLElement;
-      if (launcher) { launcher.style.display = 'block'; }
+      if (launcher) {
+        launcher.style.display = 'inline-flex';
+        // launcher.classList.add('collapsed');
+        // setTimeout(() => {
+        //   launcher.classList.remove('collapsed');
+        // }, 3000);
+      }
     });
 
     const clearBtn: HTMLButtonElement = chatBox.querySelector('#clearChatBtn') as HTMLButtonElement;
